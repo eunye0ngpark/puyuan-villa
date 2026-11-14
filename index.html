@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#20241f">
+  <meta name="description" content="菩园——可交互的新中式双层别墅，逐间探索十三处生活空间与庭院。">
+  <title>菩园 · 新中式别墅 3D 漫游</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true">
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 4v6h6M4.8 10A8 8 0 1 1 6 16"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20 13 13 20l-9-9V4h7l9 9Z"/><circle cx="8.5" cy="8.5" r="1"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M4 12c0-3 3.6-5.5 8-5.5s8 2.5 8 5.5-3.6 5.5-8 5.5S4 15 4 12Z"/><path d="M14.5 4.5c2.6 1.5 3.6 5.6 2.1 9.1s-5.1 5.4-7.7 3.9"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 0 1 4.65.8c0 1.7-2.35 2-2.35 3.7M12 17h.01"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></symbol>
+  </svg>
+
+  <main id="app" aria-label="菩园三维别墅交互导览">
+    <div id="scene-container" aria-label="三维别墅场景，可拖动旋转、滚轮缩放、点击房间"></div>
+    <div class="scene-vignette" aria-hidden="true"></div>
+    <div id="room-markers" aria-label="场景内房间标记"></div>
+
+    <header class="topbar">
+      <button class="brand" data-action="exterior" aria-label="返回菩园整栋外观">
+        <span class="brand-seal">菩</span>
+        <span><strong>菩园</strong><small>PUYUAN VILLA</small></span>
+      </button>
+      <nav class="view-switch" aria-label="楼层查看模式">
+        <button class="active" data-view="exterior" aria-pressed="true"><svg><use href="#i-cube"/></svg>整栋</button>
+        <button data-view="floor1" aria-pressed="false"><svg><use href="#i-layers"/></svg>一层</button>
+        <button data-view="floor2" aria-pressed="false"><svg><use href="#i-layers"/></svg>二层</button>
+      </nav>
+      <div class="project-meta"><span class="status-dot"></span><span>写实双层庭院别墅</span><b>13 间 · 650 项细节</b></div>
+    </header>
+
+    <aside class="scene-caption" aria-live="polite">
+      <span id="view-kicker">NEW CHINESE · 2026</span>
+      <h1 id="view-title">一方庭院，两层生活</h1>
+      <p id="view-subtitle">深色挑檐与暖玉石材，围合现代东方居所。</p>
+    </aside>
+
+    <div class="tool-rail" aria-label="场景工具">
+      <button data-action="reset" aria-label="重置当前视角" title="重置视角 · R"><svg><use href="#i-reset"/></svg></button>
+      <button data-action="labels" class="active" aria-label="隐藏房间标记" aria-pressed="true" title="房间标记"><svg><use href="#i-tag"/></svg></button>
+      <button data-action="rotate" aria-label="开启自动环绕" aria-pressed="false" title="自动环绕"><svg><use href="#i-orbit"/></svg></button>
+      <button data-action="light" aria-label="切换至暮色" aria-pressed="false" title="昼夜光线"><svg><use href="#i-sun"/></svg></button>
+      <button data-action="fullscreen" aria-label="进入全屏" title="全屏"><svg><use href="#i-expand"/></svg></button>
+      <button data-action="help" aria-label="查看操作指南" title="操作指南"><svg><use href="#i-help"/></svg></button>
+    </div>
+
+    <section id="room-panel" class="room-panel" aria-label="房间详情" hidden>
+      <button class="panel-close" data-action="close-room" aria-label="关闭房间详情"><svg><use href="#i-close"/></svg></button>
+      <div class="room-number"><span id="room-floor">1F</span><span id="room-area">126 m²</span></div>
+      <h2 id="room-name">大客厅</h2>
+      <p id="room-mood">围合会客 · 木作与亚麻</p>
+      <div class="room-rule"></div>
+      <p id="room-description" class="room-description"></p>
+      <ul id="room-features"></ul>
+      <details class="detail-ledger">
+        <summary><span>本间可见细节清单</span><b id="detail-count">50 项</b></summary>
+        <ol id="room-details"></ol>
+      </details>
+      <div class="room-nav">
+        <button data-action="prev-room" aria-label="上一个房间"><svg class="flip"><use href="#i-arrow"/></svg>上一间</button>
+        <button data-action="next-room" aria-label="下一个房间">下一间<svg><use href="#i-arrow"/></svg></button>
+      </div>
+    </section>
+
+    <div class="bottom-interface">
+      <div class="tour-row">
+        <button id="tour-button" class="tour-button" data-action="tour"><svg><use href="#i-play"/></svg><span>开始一镜到底</span></button>
+        <span id="interaction-hint">上滑推进 · 下滑后退 · 拖动环顾 · 点击房间</span>
+      </div>
+      <div class="room-dock-wrap">
+        <button class="dock-arrow" data-action="dock-prev" aria-label="向左滑动房间列表"><svg class="flip"><use href="#i-arrow"/></svg></button>
+        <nav id="room-dock" class="room-dock" aria-label="选择房间"></nav>
+        <button class="dock-arrow" data-action="dock-next" aria-label="向右滑动房间列表"><svg><use href="#i-arrow"/></svg></button>
+      </div>
+    </div>
+
+    <div id="loading" class="loading" role="status" aria-live="polite">
+      <div class="loading-seal">菩</div>
+      <p>正在构筑菩园</p>
+      <div class="loading-track"><span id="loading-progress"></span></div>
+      <small id="loading-label">准备庭院与室内空间</small>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="hud" aria-hidden="true"></div>
+
+    <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+      <button class="dialog-close" data-action="close-help" aria-label="关闭操作指南"><svg><use href="#i-close"/></svg></button>
+      <span class="dialog-kicker">EXPLORE PUYUAN</span>
+      <h2 id="help-title">像走进真实住宅一样探索</h2>
+      <div class="help-grid">
+        <div><b>拖动 / 单指滑动</b><p>环绕建筑或当前房间。</p></div>
+        <div><b>上滑 / 双指捏合</b><p>触控板上滑推进、下滑后退；运镜中可前后调整进度。</p></div>
+        <div><b>右键拖动 / 双指移动</b><p>平移观察中心。</p></div>
+        <div><b>点击房间 / 标记</b><p>平滑靠近该空间，打开详情。</p></div>
+        <div><b>← / →</b><p>切换同层上一间、下一间。</p></div>
+        <div><b>R / Esc</b><p>重置视角 / 返回整栋外观。</p></div>
+      </div>
+      <button class="dialog-primary" data-action="close-help">开始探索<svg><use href="#i-arrow"/></svg></button>
+    </dialog>
+  </main>
+  <script type="module" src="./src/scene.js"></script>
+</body>
+</html>
