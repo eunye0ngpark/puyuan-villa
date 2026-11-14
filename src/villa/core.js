@@ -109,7 +109,7 @@ export class ModelBatch {
 }
 
 async function loadTexture(loader, name, color = false) {
-  const texture = await loader.loadAsync(`/textures/${name}.jpg`);
+  const texture = await loader.loadAsync(`./textures/${name}.jpg`);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   texture.anisotropy = 8;
