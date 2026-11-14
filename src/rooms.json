@@ -1,0 +1,243 @@
+[
+  {
+    "id": "living",
+    "name": "大客厅",
+    "floor": 1,
+    "center": [
+      0,
+      -2.75
+    ],
+    "focus": [
+      -1,
+      -2.8
+    ],
+    "area": "126 m²",
+    "mood": "三倍横厅 · 挑空与庭院景观",
+    "camera": [
+      1.8,
+      -5.8
+    ],
+    "height": 2.75,
+    "fov": 68
+  },
+  {
+    "id": "study",
+    "name": "书房 · 会客",
+    "floor": 1,
+    "center": [
+      -10,
+      -4
+    ],
+    "area": "64 m²",
+    "mood": "整墙藏书 · 书画与茶叙",
+    "camera": [
+      -6.8,
+      -7
+    ],
+    "height": 3.0,
+    "fov": 60
+  },
+  {
+    "id": "guest",
+    "name": "客房",
+    "floor": 1,
+    "center": [
+      -10,
+      4
+    ],
+    "area": "64 m²",
+    "mood": "庭院景观 · 安静留宿",
+    "camera": [
+      -6.8,
+      1
+    ],
+    "height": 3.0,
+    "fov": 60
+  },
+  {
+    "id": "gym",
+    "name": "健身房",
+    "floor": 1,
+    "center": [
+      10,
+      -5.333
+    ],
+    "focus": [
+      10,
+      -5.1
+    ],
+    "area": "42.7 m²",
+    "mood": "紧凑健身 · 有氧力量分区",
+    "camera": [
+      10,
+      -7.45
+    ],
+    "height": 3.0,
+    "fov": 64
+  },
+  {
+    "id": "kitchen",
+    "name": "厨房",
+    "floor": 1,
+    "center": [
+      10,
+      4
+    ],
+    "area": "64 m²",
+    "mood": "中岛烹饪 · 完整备餐动线",
+    "camera": [
+      13,
+      1
+    ],
+    "height": 3.0,
+    "fov": 60
+  },
+  {
+    "id": "dining",
+    "name": "餐厅",
+    "floor": 1,
+    "center": [
+      3,
+      5.25
+    ],
+    "area": "33 m²",
+    "mood": "圆桌家宴 · 暖光与花艺",
+    "camera": [
+      5.4,
+      2.9
+    ],
+    "height": 2.8,
+    "fov": 62
+  },
+  {
+    "id": "bath1",
+    "name": "一层厕所",
+    "floor": 1,
+    "center": [
+      -4.5,
+      5.25
+    ],
+    "area": "16.5 m²",
+    "mood": "石材墙地 · 古铜五金",
+    "camera": [
+      -4.5,
+      3.15
+    ],
+    "height": 2.8,
+    "fov": 70
+  },
+  {
+    "id": "shower1",
+    "name": "一层淋浴间",
+    "floor": 1,
+    "center": [
+      -1.5,
+      5.25
+    ],
+    "area": "16.5 m²",
+    "mood": "通透玻璃 · 壁龛与顶喷",
+    "camera": [
+      -1.5,
+      3.15
+    ],
+    "height": 2.9,
+    "fov": 70
+  },
+  {
+    "id": "master",
+    "name": "主卧套房",
+    "floor": 2,
+    "center": [
+      -10,
+      0
+    ],
+    "focus": [
+      -10,
+      1.5
+    ],
+    "area": "128 m²",
+    "mood": "整翼套房 · 睡眠阅读与衣帽",
+    "camera": [
+      -6.4,
+      -5.8
+    ],
+    "height": 3.0,
+    "fov": 64
+  },
+  {
+    "id": "bedroom2",
+    "name": "次卧",
+    "floor": 2,
+    "center": [
+      10,
+      4
+    ],
+    "focus": [
+      10,
+      3.8
+    ],
+    "area": "64 m²",
+    "mood": "阅读角 · 庭院朝向",
+    "camera": [
+      10,
+      1.0
+    ],
+    "height": 3.0,
+    "fov": 62
+  },
+  {
+    "id": "gaming",
+    "name": "电竞房",
+    "floor": 2,
+    "center": [
+      10,
+      -4
+    ],
+    "focus": [
+      10,
+      -2.2
+    ],
+    "area": "64 m²",
+    "mood": "双人工位 · 收藏与休憩",
+    "camera": [
+      10,
+      -7.2
+    ],
+    "height": 3.0,
+    "fov": 64
+  },
+  {
+    "id": "bath2",
+    "name": "二层厕所",
+    "floor": 2,
+    "center": [
+      -3,
+      5.25
+    ],
+    "area": "33 m²",
+    "mood": "套房配套 · 双区洗漱",
+    "camera": [
+      -3,
+      3.15
+    ],
+    "height": 2.9,
+    "fov": 70
+  },
+  {
+    "id": "shower2",
+    "name": "二层淋浴间",
+    "floor": 2,
+    "center": [
+      3,
+      5.25
+    ],
+    "area": "33 m²",
+    "mood": "独立玻璃房 · 完整收纳",
+    "camera": [
+      3,
+      3.15
+    ],
+    "height": 2.9,
+    "fov": 70
+  }
+]
