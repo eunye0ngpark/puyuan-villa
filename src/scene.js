@@ -649,12 +649,12 @@ async function loadModels() {
   loadingLabel.textContent = '正在载入自然光与 Blender 材质';
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const [gltf, manifest, hdr] = await Promise.all([
-    loader.loadAsync('/models/chengyuan.glb'),
-    fetch('/details/rooms.json').then(response => {
+    loader.loadAsync('./models/chengyuan.glb'),
+    fetch('./details/rooms.json').then(response => {
       if (!response.ok) throw new Error(`细节清单载入失败 ${response.status}`);
       return response.json();
     }),
-    new HDRLoader().loadAsync('/hdri/kloofendal_2k.hdr'),
+    new HDRLoader().loadAsync('./hdri/kloofendal_2k.hdr'),
   ]);
   progressBar.style.width = '62%';
   loadingLabel.textContent = '正在整理两层空间与 650 项可见细节';
