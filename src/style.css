@@ -188,3 +188,12 @@ body.dusk[data-view="floor2"] .scene-caption span { color: var(--paper); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+body[data-view="room"] .room-panel { top: auto; bottom: 150px; transform: none; width: 255px; max-height: 180px; padding: 16px; }
+body[data-view="room"] .room-panel .room-description,
+body[data-view="room"] .room-panel ul,
+body[data-view="room"] .room-panel .room-rule,
+body[data-view="room"] .detail-ledger { display: none; }
+body[data-view="room"] .room-panel h2 { font-size: 24px; margin: 8px 0; }
+
+#camera-veil {position:fixed;inset:0;z-index:3;background:#20241f;opacity:0;pointer-events:none;transition:opacity 160ms linear;}

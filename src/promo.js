@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // One continuous camera move through the actual villa. Every doorway, stair and
 // gallery on this route exists in the Blender geometry; there are no image cuts.
-const SHOT = [
+export const SHOT = [
   [[28,12,28],[0,3,2]],
   [[15,7,20],[0,2.8,4]],
   [[4,3.2,13],[0,2.2,7]],

@@ -1,3 +1,6 @@
+import {buildExteriorCraft} from './exterior-craft.js';
+import {createEstateSetting} from './estate-setting.js';
+import {createGarden} from './garden.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -6,8 +9,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { F1, F2 } from './villa/core.js';
 import rooms from './rooms.json';
-import { installPromo } from './promo.js';
+import { installPromo, SHOT } from './promo.js';
 
+const packed = JSON.parse(document.getElementById('packed-assets')?.textContent || '{}');
+const assetURL = path => packed[path.replace(/^\.?\//, '')] || path;
+THREE.DefaultLoadingManager.setURLModifier(assetURL);
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -78,7 +84,7 @@ const LOWER_HAZE = new THREE.Color(0xaebbb4);
 const DUSK_HAZE = new THREE.Color(0x26343b);
 let dayBackground = DAY.clone();
 scene.background = DAY.clone();
-scene.fog = new THREE.Fog(DAY, 85, 220);
+scene.fog = new THREE.Fog(DAY, 65, 260);
 
 // Keep Three's native HDR background untouched. A transparent, depth-tested
 // horizon veil dissolves the fully fogged remote ground into the same colour.
@@ -131,7 +137,7 @@ sky.name = 'NaturalHorizonSky';
 sky.renderOrder = 1000;
 sky.frustumCulled = false;
 scene.add(sky);
-const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .08, 500);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .15, 350);
 camera.position.set(28, 19, 31);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 2.8, 0);
@@ -182,17 +188,7 @@ ground.receiveShadow = true;
 scene.add(ground);
 
 // 低矮、不规则的远景林冠只负责遮住地平边界，不使用光滑球体假山。
-const distant = new THREE.Group();
-const horizonMaterial = new THREE.MeshStandardMaterial({ color: 0x405344, roughness: 1 });
-for (let i = 0; i < 72; i++) {
-  const angle = i / 72 * Math.PI * 2;
-  const radius = 145 + rand() * 45;
-  const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), horizonMaterial);
-  crown.scale.set(4 + rand() * 5, 1.2 + rand() * 2.1, 4 + rand() * 5);
-  crown.position.set(Math.cos(angle) * radius, -.2, Math.sin(angle) * radius);
-  crown.rotation.set(rand() * .2, rand() * Math.PI, rand() * .15);
-  distant.add(crown);
-}
+const distant = createEstateSetting();
 scene.add(distant);
 
 const groups = {};
@@ -212,6 +208,8 @@ let tourNextAt = 0;
 let tourHold = null;
 let transition = null;
 let ready = false;
+let shotIndex = 0;
+const roomShots = {living:7,study:10,guest:13,gym:18,kitchen:24,dining:26,shower1:31,bath1:34,master:41,bath2:44,shower2:46,bedroom2:49,gaming:51};
 let needsRender = true;
 let toastTimer = null;
 let wheelImpulse = 0;
@@ -220,7 +218,7 @@ let lastMotionAt = 0;
 let shadowSignature = '';
 
 const VIEW_CONFIG = {
-  exterior: { position: [39, 25, 43], target: [0, 3.0, 0], kicker: 'NEW CHINESE · REALISTIC EDITION', title: '一方庭院，两层生活', subtitle: '真实木纹、石材与自然光，围合现代东方居所。' },
+  exterior: { position: [31, 12, 38], target: [0, 3.0, 0], kicker: 'NEW CHINESE · REALISTIC EDITION', title: '一方庭院，两层生活', subtitle: '真实木纹、石材与自然光，围合现代东方居所。' },
   floor1: { position: [23, 31, 27], target: [0, .8, 0], kicker: 'GROUND FLOOR · 8 SPACES', title: '一层 · 126㎡ 挑空横厅', subtitle: '客厅扩至三倍，书房、餐厨、客房、健身与独立卫浴重新排布。' },
   floor2: { position: [23, 34, 27], target: [0, 4.3, 0], kicker: 'UPPER FLOOR · 5 SPACES', title: '二层 · 私密休息与兴趣', subtitle: '整翼主卧、次卧、电竞房与分离卫浴，中央桥廊俯瞰客厅。' },
 };
@@ -245,7 +243,7 @@ function toast(message) {
 }
 
 function easeInOut(t) {
-  return t * t * t * (t * (t * 6 - 15) + 10);
+  return 1 - Math.pow(1 - t, 2);
 }
 
 function setMotionRendering(active) {
@@ -260,6 +258,9 @@ function markMotion() {
   setMotionRendering(true);
 }
 function cancelTransition() {
+  clearTimeout(window.__shotTimer);
+  const veil = document.getElementById('camera-veil');
+  if (veil) veil.style.opacity = '0';
   if (!transition) return;
   transition.onMid?.();
   transition.onComplete?.();
@@ -274,7 +275,7 @@ function flyTo(position, target, duration = 1150, options = {}) {
   wheelImpulse = 0;
   const fromPosition = camera.position.clone();
   const toPosition = new THREE.Vector3(...position);
-  let positionCurve = null;
+  let positionCurve = options.positionCurve ?? null;
   if (options.cruiseY) {
     const cruiseY = Math.max(options.cruiseY, fromPosition.y, toPosition.y);
     const fromGate = fromPosition.clone();
@@ -291,7 +292,7 @@ function flyTo(position, target, duration = 1150, options = {}) {
   }
   transition = {
     start: performance.now(), duration: reducedMotion ? 0 : duration,
-    fromPosition, toPosition, positionCurve,
+    fromPosition, toPosition, positionCurve, targetCurve: options.targetCurve,
     fromTarget: controls.target.clone(), toTarget: new THREE.Vector3(...target),
     fromFov: camera.fov, toFov: options.fov ?? camera.fov,
     onMid: options.onMid, midFired: false,
@@ -310,7 +311,7 @@ function setActiveViewButton(view) {
 
 function applyVisibility() {
   needsRender = true;
-  const exterior = currentView === 'exterior';
+  const exterior = currentView === 'exterior' || currentView === 'room';
   const nextShadowSignature = `${exterior}:${visibleFloor}:${dusk}`;
   if (nextShadowSignature !== shadowSignature) {
     shadowSignature = nextShadowSignature;
@@ -341,7 +342,7 @@ function applyVisibility() {
   sun.intensity = dusk ? .45 : (exterior ? 2.3 : 1.15);
   scene.environmentIntensity = dusk ? .18 : (exterior ? .78 : .62);
   renderer.toneMappingExposure = dusk ? .88 : .98;
-  interiorLights.forEach(light => { light.visible = !exterior || dusk; light.intensity = exterior ? 18 : 14; });
+  interiorLights.forEach(light => { light.visible = !exterior || dusk || currentView === 'room'; light.intensity = exterior ? 18 : 14; });
 }
 
 function renderDock() {
@@ -371,7 +372,7 @@ function stopTour() {
   tourActive = false;
   tourButton.classList.remove('playing');
   tourButton.querySelector('use').setAttribute('href', '#i-play');
-  tourButton.querySelector('span').textContent = '开始一镜到底';
+  tourButton.querySelector('span').textContent = '开始空间巡览';
   $('#interaction-hint').textContent = '上滑推进 · 下滑后退 · 拖动环顾 · 点击房间';
 }
 
@@ -381,6 +382,7 @@ function setMode(view, options = {}) {
   currentView = view;
   document.body.dataset.view = view;
   currentRoom = null;
+  if (view === 'floor1' || view === 'floor2') { selectRoom(view === 'floor1' ? 'living' : 'master'); return; }
   if (view === 'floor1') currentFloor = visibleFloor = 1;
   if (view === 'floor2') currentFloor = visibleFloor = 2;
   roomPanel.hidden = true;
@@ -397,7 +399,6 @@ function selectRoom(id, fromTour = false) {
   const room = rooms.find(item => item.id === id);
   if (!room) return;
   const previousView = currentView;
-  const previousRoom = currentRoom;
   if (!fromTour) stopTour();
   if (previousView !== 'room') visibleFloor = room.floor;
   currentFloor = room.floor;
@@ -418,24 +419,34 @@ function selectRoom(id, fromTour = false) {
   $('#room-details').innerHTML = (detailsManifest[id] ?? []).map(item => `<li><span>${String(item.index).padStart(2, '0')}</span>${item.label}</li>`).join('');
   $('#detail-count').textContent = `${detailsManifest[id]?.length ?? 0} 项`;
   roomPanel.hidden = false;
-  const baseY = room.floor === 1 ? F1 : F2;
-  const focus = room.focus ?? room.center;
-  const target = [focus[0], baseY + 1.15, -focus[1]];
-  const position = [room.camera[0], baseY + room.height, -room.camera[1]];
-  const targetFov = isPortrait() ? Math.max(74, room.fov) : room.fov;
-  const needsArc = previousView === 'room' && previousRoom && previousRoom !== id;
-  const syncFloor = () => {
-    if (visibleFloor === room.floor) return;
-    visibleFloor = room.floor;
-    applyVisibility();
+  const destination = roomShots[id];
+  const position = SHOT[destination][0];
+  const target = SHOT[destination][1];
+  const duration = previousView === 'room' ? 1500 : 2200;
+  roomPanel.hidden = true;
+  const closePosition = new THREE.Vector3(...position);
+  const look = new THREE.Vector3(...target);
+  const approach = closePosition.clone().lerp(look, -.06);
+  const veil = document.getElementById('camera-veil');
+  const startShot = () => {
+    transition = null;
+    controls.autoRotate = false;
+    camera.position.copy(approach);
+    controls.target.copy(look);
+    controls.enableDamping = false;
+    controls.update();
+    controls.enableDamping = true;
+    flyTo(position, target, duration, {
+      fov: isPortrait() ? 65 : 52,
+      onComplete: () => { roomPanel.hidden = false; shotIndex = destination; },
+    });
+    veil.style.opacity = '0';
   };
-  const distance = camera.position.distanceTo(new THREE.Vector3(...position));
-  flyTo(position, target, fromTour ? 2400 : Math.min(2400, 1500 + distance * 30), {
-    fov: targetFov,
-    cruiseY: needsArc ? (room.floor === 2 ? 11.4 : 8.2) : 0,
-    onMid: syncFloor,
-    onComplete: syncFloor,
-  });
+  clearTimeout(window.__shotTimer);
+  cancelTransition();
+  veil.style.opacity = '1';
+  window.__shotTimer = setTimeout(startShot, reducedMotion ? 0 : 160);
+  if (fromTour) tourNextAt = performance.now() + duration + 1800;
   if (fromTour) {
     tourHold = {
       position: new THREE.Vector3(...position),
@@ -446,7 +457,7 @@ function selectRoom(id, fromTour = false) {
   const chip = roomDock.querySelector(`[data-room="${id}"]`);
   chip?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
   if (fromTour) {
-    $('#interaction-hint').textContent = `一镜到底 ${tourIndex + 1} / ${rooms.length} · ${room.name}`;
+    $('#interaction-hint').textContent = `空间巡览 ${tourIndex + 1} / ${rooms.length} · ${room.name}`;
   }
 }
 
@@ -535,9 +546,9 @@ function toggleTour() {
   tourIndex = currentRoom ? Math.max(0, rooms.findIndex(room => room.id === currentRoom)) : 0;
   tourButton.classList.add('playing');
   tourButton.querySelector('use').setAttribute('href', '#i-pause');
-  tourButton.querySelector('span').textContent = '暂停一镜到底';
+  tourButton.querySelector('span').textContent = '暂停空间巡览';
   selectRoom(rooms[tourIndex].id, true);
-  tourNextAt = performance.now() + 4800;
+  // The selected route sets its own arrival and hold time.
 }
 
 function resetView() {
@@ -611,7 +622,7 @@ renderer.domElement.addEventListener('pointerup', event => {
   if (!villa) return;
   const hits = raycaster.intersectObject(villa, true);
   if (!hits.length) return;
-  if (currentView === 'exterior') { setMode('floor1'); return; }
+  if (currentView === 'exterior') { selectRoom('living'); return; }
   const point = hits[0].point;
   let nearest = null;
   let distance = Infinity;
@@ -650,7 +661,7 @@ async function loadModels() {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const [gltf, manifest, hdr] = await Promise.all([
     loader.loadAsync('./models/chengyuan.glb'),
-    fetch('./details/rooms.json').then(response => {
+    fetch(assetURL('./details/rooms.json')).then(response => {
       if (!response.ok) throw new Error(`细节清单载入失败 ${response.status}`);
       return response.json();
     }),
@@ -662,6 +673,7 @@ async function loadModels() {
   const env = pmremHDR.fromEquirectangular(hdr);
   scene.environment = env.texture;
   scene.environmentIntensity = .82;
+  hdr.mapping = THREE.EquirectangularReflectionMapping;
   dayBackground = hdr;
   scene.background = dayBackground;
   scene.backgroundBlurriness = .055;
@@ -719,6 +731,20 @@ async function loadModels() {
     };
     object.material = Array.isArray(object.material) ? object.material.map(temperLeaf) : temperLeaf(object.material);
   });
+  buildExteriorCraft(groups);
+  const shelfMaterial = groups.Floor1.getObjectByName('Floor1__walnut').material.clone();
+  const shelfBack = new THREE.Mesh(new THREE.BoxGeometry(5.84, 2.69, .035), shelfMaterial);
+  shelfBack.position.set(-10.65, 1.925, .17);
+  shelfBack.receiveShadow = true;
+  shelfBack.name = 'StudyShelfSeparatedBackboard';
+  groups.Floor1.add(shelfBack);
+
+  for (const name of ['Site__leaf','Site__leafLight','Site__walnut','Site__soil','Site__clay','Site__grassAlt']) {
+    const object=groups.Site.getObjectByName(name);
+    if(object) object.visible=false;
+  }
+  const garden=await createGarden(loader);
+  groups.Site.add(garden);
   scene.add(villa);
   assetMetrics = [];
   window.__DETAILS__ = detailsManifest;
@@ -771,9 +797,10 @@ function render(now) {
     const eased = easeInOut(progress);
     if (transition.positionCurve) {
       if (eased >= 1) camera.position.copy(transition.toPosition);
-      else camera.position.copy(transition.positionCurve.getPointAt(eased));
+      else camera.position.copy(transition.positionCurve.getPoint(eased));
     } else camera.position.lerpVectors(transition.fromPosition, transition.toPosition, eased);
-    controls.target.lerpVectors(transition.fromTarget, transition.toTarget, eased);
+    if (transition.targetCurve) controls.target.copy(transition.targetCurve.getPoint(eased));
+    else controls.target.lerpVectors(transition.fromTarget, transition.toTarget, eased);
     const nextFov = THREE.MathUtils.lerp(transition.fromFov, transition.toFov, eased);
     if (Math.abs(nextFov - camera.fov) > .001) {
       camera.fov = nextFov;
@@ -794,13 +821,13 @@ function render(now) {
     if (tourIndex >= rooms.length) {
       stopTour();
       setMode('exterior');
-      toast('十三处空间一镜到底完成');
+      toast('十三处空间空间巡览完成');
     } else {
       selectRoom(rooms[tourIndex].id, true);
-      tourNextAt = now + 4800;
+      // The selected route sets its own arrival and hold time.
     }
   }
-  const controlsChanged = controls.update(delta);
+  const controlsChanged = transition ? (camera.lookAt(controls.target), false) : controls.update(delta);
   const scrolling = !transition && Math.abs(wheelImpulse) > .0005;
   if (scrolling) {
     wheelOffset.copy(camera.position).sub(controls.target);
@@ -816,7 +843,7 @@ function render(now) {
   } else if (!transition) {
     wheelImpulse = 0;
   }
-  const holding = tourActive && !transition && tourHold;
+  const holding = tourActive && !transition && tourHold && roomPanel.hidden === false;
   if (holding) {
     if (tourHold.startedAt === null) tourHold.startedAt = now;
     const drift = Math.min(.32, (now - tourHold.startedAt) * .00012);
