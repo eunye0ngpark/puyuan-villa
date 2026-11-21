@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#20241f">
   <meta name="description" content="菩园——可交互的新中式双层别墅，逐间探索十三处生活空间与庭院。">
   <title>菩园 · 新中式别墅 3D 漫游</title>
-  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -28,6 +28,7 @@
   <main id="app" aria-label="菩园三维别墅交互导览">
     <div id="scene-container" aria-label="三维别墅场景，可拖动旋转、滚轮缩放、点击房间"></div>
     <div class="scene-vignette" aria-hidden="true"></div>
+    <div id="camera-veil" aria-hidden="true"></div>
     <div id="room-markers" aria-label="场景内房间标记"></div>
 
     <header class="topbar">
@@ -78,7 +79,7 @@
 
     <div class="bottom-interface">
       <div class="tour-row">
-        <button id="tour-button" class="tour-button" data-action="tour"><svg><use href="#i-play"/></svg><span>开始一镜到底</span></button>
+        <button id="tour-button" class="tour-button" data-action="tour"><svg><use href="#i-play"/></svg><span>开始空间巡览</span></button>
         <span id="interaction-hint">上滑推进 · 下滑后退 · 拖动环顾 · 点击房间</span>
       </div>
       <div class="room-dock-wrap">
