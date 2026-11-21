@@ -27,6 +27,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Restore optimized assets
+        run: |
+          base64 -d optimized-assets/optimized-assets/chengyuan.glb.base64 > public/models/chengyuan.glb
+          base64 -d optimized-assets/kloofendal_1k.hdr.base64 > public/hdri/kloofendal_2k.hdr
       - name: Build
         run: npm run build
       - name: Setup Pages
