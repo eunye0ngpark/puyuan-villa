@@ -13,7 +13,7 @@ import {
   dedup, draco, flatten, instance, join, meshopt, palette, prune, resample,
   simplify, sparse, textureCompress, weld,
 } from "@gltf-transform/functions";
-import { MeshoptEncoder, MeshoptSimplifier } from "meshoptimizer";
+import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from "meshoptimizer";
 import sharp from "sharp";
 import { statSync } from "node:fs";
 
@@ -30,9 +30,10 @@ const useDraco = flags.includes("--draco");
 const simplifyRatio = Number(flag("--simplify", 0));
 const texSize = Number(flag("--tex", 2048));
 
-await MeshoptEncoder.ready;
+await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
   "meshopt.encoder": MeshoptEncoder,
+  "meshopt.decoder": MeshoptDecoder,
   ...(useDraco ? { "draco3d.encoder": await (await import("draco3d")).createEncoderModule() } : {}),
 });
 
